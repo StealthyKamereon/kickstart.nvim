@@ -267,11 +267,11 @@ require('lazy').setup({
 vim.o.hlsearch = false
 
 -- Make line numbers default
-vim.o.relativenumber = true
-vim.o.number = true
+vim.go.relativenumber = true
+vim.go.number = true
 
 -- Enable mouse mode
-vim.o.mouse = 'a'
+vim.go.mouse = 'a'
 
 -- Sync clipboard between OS and Neovim.
 --  Remove this option if you want your OS clipboard to remain independent.
