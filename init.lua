@@ -270,8 +270,7 @@ vim.o.hlsearch = false
 vim.go.relativenumber = true
 vim.go.number = true
 
--- Enable mouse mode
-vim.go.mouse = 'a'
+vim.go.scrolloff = 10
 
 -- Sync clipboard between OS and Neovim.
 --  Remove this option if you want your OS clipboard to remain independent.
