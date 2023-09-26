@@ -85,7 +85,7 @@ require('lazy').setup({
     "coffebar/neovim-project",
     opts = {
       projects = {
-        "/mnt/c/Users/mgodey/Documents/*",
+        "~/rust_projects/*",
         "~/.config/*",
       },
     },
@@ -503,7 +503,9 @@ local servers = {
   -- gopls = {},
   -- pyright = {},
   rust_analyzer = {
-
+    cargo = {
+      features = "all"
+    }
   },
   -- tsserver = {},
   -- html = { filetypes = { 'html', 'twig', 'hbs'} },

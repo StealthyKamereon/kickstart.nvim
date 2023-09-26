@@ -1,0 +1,7 @@
+-- VsCode like minimap of buffers
+return {
+  'wfxr/minimap.vim',
+  init = function()
+    vim.cmd("let g:minimap_auto_start = 1")
+  end
+}
