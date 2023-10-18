@@ -109,6 +109,9 @@ require('lazy').setup({
   'nvim-lua/plenary.nvim',
   'mfussenegger/nvim-dap',
 
+  -- Highlight symbol under cursor
+  'RRethy/vim-illuminate',
+
   -- NOTE: This is where your plugins related to LSP can be installed.
   --  The configuration is done below. Search for lspconfig to find it below.
   {
@@ -276,6 +279,8 @@ vim.go.scrolloff = 10
 --  Remove this option if you want your OS clipboard to remain independent.
 --  See `:help 'clipboard'`
 vim.o.clipboard = 'unnamedplus'
+
+vim.opt.diffopt:append("vertical")
 
 -- Enable break indent
 vim.o.breakindent = true
@@ -507,6 +512,7 @@ local servers = {
       features = "all"
     }
   },
+  texlab = {},
   -- tsserver = {},
   -- html = { filetypes = { 'html', 'twig', 'hbs'} },
 
@@ -607,6 +613,7 @@ cmp.setup {
     { name = 'nvim_lsp' },
     { name = 'luasnip' },
   },
+  preselect = cmp.PreselectMode.None,
 }
 
 -- The line beneath this is called `modeline`. See `:help modeline`
