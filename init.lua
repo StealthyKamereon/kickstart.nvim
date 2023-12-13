@@ -86,8 +86,8 @@ require('lazy').setup({
     "coffebar/neovim-project",
     opts = {
       projects = {
-        "~/rust_projects/*",
-        "~/.config/*",
+        "~/Documents/*",
+        "~/AppData/Local/nvim/",
       },
     },
     dependencies = { "nvim-telescope/telescope.nvim", "Shatur/neovim-session-manager" },
