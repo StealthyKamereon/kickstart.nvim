@@ -43,11 +43,6 @@ local on_attach = function(_, bufnr)
   end, { desc = 'Format current buffer with LSP' })
 end
 
--- mason-lspconfig requires that these setup functions are called in this order
--- before setting up the servers.
-require('mason').setup()
-require('mason-lspconfig').setup()
-
 -- Enable the following language servers
 --  Feel free to add/remove any LSPs that you want here. They will automatically be installed.
 --
@@ -62,9 +57,8 @@ local servers = {
   -- pyright = {},
   rust_analyzer = {
     cargo = {
-      features = "all"
+      features = "all",
     },
-    rustc = { source = "discover" }
   },
   texlab = {},
   -- tsserver = {},
@@ -81,6 +75,31 @@ local servers = {
   },
 }
 
+-- merge two nested tables, in place
+function merge(t1, t2)
+  for k, v in pairs(t2) do
+    if type(v) == 'table' then
+      t1[k] = merge(t1[k], t2[k])
+    else
+      t1[k] = v
+    end
+  end
+
+  return t1
+end
+
+-- Allow custom lsp config in file lsp-config.json
+local lsp_config_path = vim.fs.joinpath(vim.fn.getcwd(), "lsp-config.json")
+if vim.fn.filereadable(lsp_config_path) == 1 then
+  local file = io.open(lsp_config_path, "r")
+  local file_content = file:read("a")
+  vim.print(file_content)
+  local config = vim.json.decode(file_content)
+  file.close()
+  merge(servers, config)
+  vim.print(servers)
+end
+
 -- nvim-cmp supports additional completion capabilities, so broadcast that to servers
 local capabilities = vim.lsp.protocol.make_client_capabilities()
 capabilities = require('cmp_nvim_lsp').default_capabilities(capabilities)
@@ -88,38 +107,75 @@ capabilities.experimental = {
   snippetTextEdit = false
 }
 
--- Ensure the servers above are installed
-local mason_lspconfig = require('mason-lspconfig')
-
-mason_lspconfig.setup({
-  ensure_installed = vim.tbl_keys(servers),
-})
-
-mason_lspconfig.setup_handlers({
-  function(server_name)
-    require('lspconfig')[server_name].setup {
-      capabilities = capabilities,
-      on_attach = on_attach,
-      settings = servers[server_name],
-      filetypes = (servers[server_name] or {}).filetypes,
-    }
-  end,
-  ["rust_analyzer"] = function()
-    require("rust-tools").setup({
-      server = {
-        capabilities,
-        on_attach = function(_, bufnr)
-          on_attach(_, bufnr)
-          -- Hover actions
-          vim.keymap.set("n", "gh", require('rust-tools').hover_actions.hover_actions,
-            { buffer = bufnr, desc = "[h]over actions" })
-          -- Code action groups
-          vim.keymap.set("n", "ga", require('rust-tools').code_action_group.code_action_group,
-            { buffer = bufnr, desc = "Code [a]ction group" })
-        end,
-        settings = servers["rust_analyzer"],
-        filetypes = (servers["rust_analyzer"] or {}).filetypes,
+if vim.fn.filereadable("/etc/NIXOS") == 1 then
+  local lspconfig = require('lspconfig')
+  for server_name in pairs(servers) do
+    if server_name == "rust_analyzer" then
+      require("rust-tools").setup({
+        server = {
+          capabilities,
+          on_attach = function(_, bufnr)
+            on_attach(_, bufnr)
+            -- Hover actions
+            vim.keymap.set("n", "gh", require('rust-tools').hover_actions.hover_actions,
+              { buffer = bufnr, desc = "[h]over actions" })
+            -- Code action groups
+            vim.keymap.set("n", "ga", require('rust-tools').code_action_group.code_action_group,
+              { buffer = bufnr, desc = "Code [a]ction group" })
+          end,
+          settings = { ['rust-analyzer'] = servers["rust_analyzer"] },
+          filetypes = (servers["rust_analyzer"] or {}).filetypes,
+        }
+      })
+    else
+      lspconfig[server_name].setup {
+        capabilities = capabilities,
+        on_attach = on_attach,
+        settings = { [server_name] = servers[server_name] },
       }
-    })
+    end
   end
-})
+  --vim.print(lspconfig)
+else
+  -- mason-lspconfig requires that these setup functions are called in this order
+  -- before setting up the servers.
+  require('mason').setup()
+  require('mason-lspconfig').setup()
+
+
+  -- Ensure the servers above are installed
+  local mason_lspconfig = require('mason-lspconfig')
+
+  mason_lspconfig.setup({
+    ensure_installed = vim.tbl_keys(servers),
+  })
+
+  mason_lspconfig.setup_handlers({
+    function(server_name)
+      require('lspconfig')[server_name].setup {
+        capabilities = capabilities,
+        on_attach = on_attach,
+        settings = servers[server_name],
+        filetypes = (servers[server_name] or {}).filetypes,
+      }
+    end,
+    ["rust_analyzer"] = function()
+      require("rust-tools").setup({
+        server = {
+          capabilities,
+          on_attach = function(_, bufnr)
+            on_attach(_, bufnr)
+            -- Hover actions
+            vim.keymap.set("n", "gh", require('rust-tools').hover_actions.hover_actions,
+              { buffer = bufnr, desc = "[h]over actions" })
+            -- Code action groups
+            vim.keymap.set("n", "ga", require('rust-tools').code_action_group.code_action_group,
+              { buffer = bufnr, desc = "Code [a]ction group" })
+          end,
+          settings = servers["rust_analyzer"],
+          filetypes = (servers["rust_analyzer"] or {}).filetypes,
+        }
+      })
+    end
+  })
+end
